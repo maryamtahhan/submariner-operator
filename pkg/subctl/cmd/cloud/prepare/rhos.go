@@ -26,7 +26,7 @@ import (
 	"github.com/submariner-io/submariner-operator/pkg/subctl/cmd/utils"
 )
 
-// NewCommand returns a new cobra.Command used to prepare a cloud infrastructure.
+// newRHOSPrepareCommand returns a new cobra.Command used to prepare a cloud infrastructure.
 func newRHOSPrepareCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rhos",

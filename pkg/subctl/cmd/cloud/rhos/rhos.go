@@ -111,8 +111,6 @@ func RunOnRHOS(restConfigProducer restconfig.Producer, function func(cloud api.C
 		K8sClient: k8sClientSet,
 	}
 	rhosCloud := rhos.NewCloud(cloudInfo)
-	// TODO: Ideally we should be able to specify the image for GWNode, but it was seen that
-	// with certain images, the instance is not coming up. Needs to be investigated further.
 	gwDeployer := rhos.NewOcpGatewayDeployer(cloudInfo, projectID)
 
 	utils.ExitOnError("Failed to initialize a GatewayDeployer config", err)
