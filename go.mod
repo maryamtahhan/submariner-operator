@@ -11,6 +11,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
+	github.com/gophercloud/utils v0.0.0-20210909165623-d7085207ff6d
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.3.0 // indirect
@@ -28,7 +29,7 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/spf13/cobra v1.3.0
 	github.com/submariner-io/admiral v0.12.0-m3
-	github.com/submariner-io/cloud-prepare v0.12.0-m3.0.20220117145104-8c71f70f26cb
+	github.com/submariner-io/cloud-prepare v0.12.0-m3.0.20220131085225-2759d0ffc20d
 	github.com/submariner-io/lighthouse v0.12.0-m3
 	github.com/submariner-io/shipyard v0.12.0-m3
 	github.com/submariner-io/submariner v0.12.0-m3.0.20220118080926-1324572a65c0
@@ -38,7 +39,7 @@ require (
 	go.starlark.net v0.0.0-20210506034541-84642328b1f0 // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
-	google.golang.org/api v0.65.0
+	google.golang.org/api v0.66.0
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.20.1
 	k8s.io/apimachinery v0.21.0

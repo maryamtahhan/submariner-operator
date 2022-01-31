@@ -21,8 +21,8 @@ package cleanup
 import (
 	"github.com/spf13/cobra"
 	"github.com/submariner-io/cloud-prepare/pkg/api"
+	"github.com/submariner-io/submariner-operator/internal/exit"
 	"github.com/submariner-io/submariner-operator/pkg/subctl/cmd/cloud/rhos"
-	"github.com/submariner-io/submariner-operator/pkg/subctl/cmd/utils"
 )
 
 // newRHOSCleanupCommand returns a new cobra.Command used to prepare a cloud infrastructure.
@@ -52,5 +52,5 @@ func cleanupRHOS(cmd *cobra.Command, args []string) {
 			return cloud.CleanupAfterSubmariner(reporter)
 		})
 
-	utils.ExitOnError("Failed to cleanup RHOS cloud", err)
+	exit.OnErrorWithMessage(err, "Failed to cleanup RHOS cloud")
 }

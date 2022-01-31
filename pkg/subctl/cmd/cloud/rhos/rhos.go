@@ -59,7 +59,7 @@ func AddRHOSFlags(command *cobra.Command) {
 	command.Flags().StringVar(&ocpMetadataFile, "ocp-metadata", "",
 		"OCP metadata.json file (or the directory containing it) from which to read the RHOS infra ID "+
 			"and region from (takes precedence over the specific flags)")
-	command.Flags().StringVar(&cloudEntry, cloudEntryFlag, "", " the cloud entry to use")
+	command.Flags().StringVar(&cloudEntry, cloudEntryFlag, "", "the cloud entry to use")
 }
 
 // RunOnRHOS runs the given function on RHOS, supplying it with a cloud instance connected to RHOS and a reporter that writes to CLI.
@@ -77,7 +77,7 @@ func RunOnRHOS(restConfigProducer restconfig.Producer, function func(cloud api.C
 		utils.ExpectFlag(projectIDFlag, projectID)
 	}
 
-	reporter := cloudutils.NewCLIReporter()
+	reporter := cloudutils.NewStatusReporter()
 	reporter.Started("Retrieving RHOS credentials from your RHOS configuration")
 
 	// Using RHOS default "openstack", if not specified
@@ -90,9 +90,6 @@ func RunOnRHOS(restConfigProducer restconfig.Producer, function func(cloud api.C
 	}
 
 	providerClient, err := clientconfig.AuthenticatedClient(opts)
-	if err != nil {
-		panic(err)
-	}
 
 	utils.ExitOnError("Failed to initialize a RHOS Client", err)
 
