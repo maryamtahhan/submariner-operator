@@ -21,25 +21,16 @@ package aws
 
 import (
 	"encoding/json"
+	"k8s.io/client-go/rest"
 	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 	"github.com/submariner-io/admiral/pkg/util"
 	"github.com/submariner-io/cloud-prepare/pkg/api"
 	aws "github.com/submariner-io/cloud-prepare/pkg/aws"
 	"github.com/submariner-io/cloud-prepare/pkg/ocp"
-	"github.com/submariner-io/submariner-operator/internal/exit"
-	"github.com/submariner-io/submariner-operator/internal/restconfig"
-	cloudutils "github.com/submariner-io/submariner-operator/pkg/subctl/cmd/cloud/utils"
-	"github.com/submariner-io/submariner-operator/pkg/subctl/cmd/utils"
 	"k8s.io/client-go/dynamic"
-)
-
-const (
-	infraIDFlag = "infra-id"
-	regionFlag  = "region"
 )
 
 var (
@@ -50,29 +41,18 @@ var (
 	ocpMetadataFile string
 )
 
-// AddAWSFlags adds basic flags needed by AWS.
-func AddAWSFlags(command *cobra.Command) {
-	command.Flags().StringVar(&infraID, infraIDFlag, "", "AWS infra ID")
-	command.Flags().StringVar(&region, regionFlag, "", "AWS region")
-	command.Flags().StringVar(&ocpMetadataFile, "ocp-metadata", "",
-		"OCP metadata.json file (or directory containing it) to read AWS infra ID and region from (Takes precedence over the flags)")
-	command.Flags().StringVar(&profile, "profile", aws.DefaultProfile(), "AWS profile to use for credentials")
-	command.Flags().StringVar(&credentialsFile, "credentials", aws.DefaultCredentialsFile(), "AWS credentials configuration file")
-}
-
 // RunOnAWS runs the given function on AWS, supplying it with a cloud instance connected to AWS and a reporter that writes to CLI.
 // The functions makes sure that infraID and region are specified, and extracts the credentials from a secret in order to connect to AWS.
-func RunOnAWS(restConfigProducer restconfig.Producer, gwInstanceType string,
-	function func(cloud api.Cloud, gwDeployer api.GatewayDeployer, reporter api.Reporter) error) error {
+func RunOnAWS(config *rest.Config, gwInstanceType string,
+	function func(cloud api.Cloud, gwDeployer api.GatewayDeployer, reporter api.Reporter) error, reporter api.Reporter) error {
 	if ocpMetadataFile != "" {
 		err := initializeFlagsFromOCPMetadata(ocpMetadataFile)
-		exit.OnErrorWithMessage(err, "Failed to read AWS information from OCP metadata file")
-	} else {
-		utils.ExpectFlag(infraIDFlag, infraID)
-		utils.ExpectFlag(regionFlag, region)
+		if err != nil {
+			return errors.Wrap(err, "Failed to read AWS information from OCP metadata file")
+		}
+	} else if infraID == "" || region == "" {
+		return errors.New("You must specify the infra-ID and/or region flag")
 	}
-
-	reporter := cloudutils.NewStatusReporter()
 
 	reporter.Started("Initializing AWS connectivity")
 
@@ -85,18 +65,22 @@ func RunOnAWS(restConfigProducer restconfig.Producer, gwInstanceType string,
 
 	reporter.Succeeded("")
 
-	k8sConfig, err := restConfigProducer.ForCluster()
-	exit.OnErrorWithMessage(err, "Failed to initialize a Kubernetes config")
+	restMapper, err := util.BuildRestMapper(config)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to create restmapper")
+	}
 
-	restMapper, err := util.BuildRestMapper(k8sConfig)
-	exit.OnErrorWithMessage(err, "Failed to create restmapper")
-
-	dynamicClient, err := dynamic.NewForConfig(k8sConfig)
-	exit.OnErrorWithMessage(err, "Failed to create dynamic client")
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to create dynamic client")
+	}
 
 	msDeployer := ocp.NewK8sMachinesetDeployer(restMapper, dynamicClient)
+
 	gwDeployer, err := aws.NewOcpGatewayDeployer(awsCloud, msDeployer, gwInstanceType)
-	exit.OnErrorWithMessage(err, "Failed to initialize a GatewayDeployer config")
+	if err != nil {
+		return errors.Wrapf(err, "Failed to initialize a GatewayDeployer config")
+	}
 
 	return function(awsCloud, gwDeployer, reporter)
 }
